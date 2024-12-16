@@ -16,7 +16,7 @@ main()
         console.log(err);
     });
 async function main() {
-    await mongoose.connect("mongodb+srv://harshitsingharya24:AlLLGk8qXY9fzHJA@cluster0.afo0r.mongodb.net/");
+    await mongoose.connect("mongodb+srv://harshitsingharya24:AlLLGk8qXY9fzHJA@cluster0.afo0r.mongodb.net/test");
 };
 
 const manager = new NlpManager({ languages: ['en'] });
