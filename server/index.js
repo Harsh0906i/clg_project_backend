@@ -11,14 +11,12 @@ app.use(cors());
 
 main()
     .then(() => {
-        console.log("Connected to MongoDB successfully");
-    })
-    .catch((err) => {
-        console.error("Connection error:", err.message, err.stack);
+        console.log("success");
+    }).catch((err) => {
+        console.log(err);
     });
-
 async function main() {
-    await mongoose.connect("mongodb+srv://harshitsingharya24:AlLLGk8qXY9fzHJA@cluster0.afo0r.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
+    await mongoose.connect("mongodb+srv://harshitsingharya24:AlLLGk8qXY9fzHJA@cluster0.afo0r.mongodb.net/");
 };
 
 const manager = new NlpManager({ languages: ['en'] });
