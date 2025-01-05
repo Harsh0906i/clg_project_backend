@@ -14,9 +14,7 @@
     ],
     "functions": {
       "index.js": {
-        "includeFiles": [
-          "model.nlp"
-        ]
+        "includeFiles": "model.nlp"
       }
     }
   }
