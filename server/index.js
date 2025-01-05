@@ -4,11 +4,19 @@ const cors = require('cors');
 const { NlpManager } = require('node-nlp');
 const mongoose = require('mongoose');
 const BotSchema = require('./model/BotSchema');
+const path = require('path');
+const fs = require('fs');
+
 const app = express();
 
 app.use(bodyParser.json());
 app.use(cors());
 
+// Use absolute path for model file
+const modelPath = path.join(__dirname, 'model.nlp');
+console.log('Model path:', modelPath);
+
+// Database connection
 main()
     .then(() => {
         console.log("Database connected successfully!");
@@ -21,24 +29,33 @@ async function main() {
     await mongoose.connect("mongodb+srv://harshitsingharya24:AlLLGk8qXY9fzHJA@cluster0.afo0r.mongodb.net/");
 }
 
+// Initialize NLP Manager
 const manager = new NlpManager({ languages: ['en'] });
 
 // Load the pre-trained model
 const loadModel = async () => {
     try {
-        manager.load('./model.nlp');
-        console.log('Model loaded successfully!');
+        fs.access(modelPath, fs.constants.F_OK, (err) => {
+            if (err) {
+                console.error("Model file not found:", err);
+            } else {
+                manager.load(modelPath);
+                console.log('Model loaded successfully!');
+            }
+        });
     } catch (err) {
         console.error('Error loading the model: ', err);
     }
 };
 
+// Load the model when server starts
 loadModel();
 
 app.get('/', (req, res) => {
     res.send('Chatbot is working!');
 });
 
+// Endpoint to add new training data
 app.post('/addTrainingData', async (req, res) => {
     const data = req.body;
 
@@ -68,6 +85,7 @@ app.post('/addTrainingData', async (req, res) => {
     }
 });
 
+// Function to add training data and update model
 const addTrainingDataAndUpdateModel = async (language, sentence, intent) => {
     if (!language || !sentence || !intent) {
         throw new Error('Language, sentence, and intent are required.');
@@ -80,13 +98,15 @@ const addTrainingDataAndUpdateModel = async (language, sentence, intent) => {
         manager.addDocument(language, sentence, intent);
 
         await manager.train();
-        await manager.save('./model.nlp'); // Update the model
+        await manager.save(modelPath); // Save updated model
         console.log('New training data added and model re-trained!');
     } catch (err) {
         console.error('Error saving new training data: ', err);
         throw new Error('Error saving new training data');
     }
 };
+
+
 
 app.post('/chat', async (req, res) => {
     const { message } = req.body;
