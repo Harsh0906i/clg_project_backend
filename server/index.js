@@ -5,62 +5,40 @@ const { NlpManager } = require('node-nlp');
 const mongoose = require('mongoose');
 const BotSchema = require('./model/BotSchema');
 const app = express();
+
 app.use(bodyParser.json());
 app.use(cors());
-// mongodb://localhost:27017/nlpData
 
 main()
     .then(() => {
-        console.log("success");
-    }).catch((err) => {
-        console.log(err);
+        console.log("Database connected successfully!");
+    })
+    .catch((err) => {
+        console.error("Database connection error: ", err);
     });
+
 async function main() {
     await mongoose.connect("mongodb+srv://harshitsingharya24:AlLLGk8qXY9fzHJA@cluster0.afo0r.mongodb.net/");
-};
+}
 
 const manager = new NlpManager({ languages: ['en'] });
 
-const loadTrainingDataFromDB = async () => {
+// Load the pre-trained model
+const loadModel = async () => {
     try {
-        const data = await BotSchema.find();
-        data.forEach(doc => {
-            manager.addDocument(doc.language, doc.sentence, doc.intent);
-        });
-
-        await manager.train();
-        await manager.save();
-        console.log('Training completed and model saved!');
+        manager.load('./model.nlp');
+        console.log('Model loaded successfully!');
     } catch (err) {
-        console.error('Error loading training data: ', err);
+        console.error('Error loading the model: ', err);
     }
 };
 
-loadTrainingDataFromDB();
+loadModel();
 
-const addTrainingDataAndUpdateModel = async (language, sentence, intent) => {
-    if (!language || !sentence || !intent) {
-        throw new Error('Language, sentence, and intent are required.');
-    }
-
-    try {
-        const newTrainingData = new BotSchema({ language, sentence, intent });
-        await newTrainingData.save();
-
-        manager.addDocument(language, sentence, intent);
-
-        await manager.train();
-        await manager.save();
-
-        console.log('New training data added and model re-trained!');
-    } catch (err) {
-        console.error('Error saving new training data: ', err);
-        throw new Error('Error saving new training data');
-    }
-};
 app.get('/', (req, res) => {
-    res.send('working!')
-})
+    res.send('Chatbot is working!');
+});
+
 app.post('/addTrainingData', async (req, res) => {
     const data = req.body;
 
@@ -90,6 +68,25 @@ app.post('/addTrainingData', async (req, res) => {
     }
 });
 
+const addTrainingDataAndUpdateModel = async (language, sentence, intent) => {
+    if (!language || !sentence || !intent) {
+        throw new Error('Language, sentence, and intent are required.');
+    }
+
+    try {
+        const newTrainingData = new BotSchema({ language, sentence, intent });
+        await newTrainingData.save();
+
+        manager.addDocument(language, sentence, intent);
+
+        await manager.train();
+        await manager.save('./model.nlp'); // Update the model
+        console.log('New training data added and model re-trained!');
+    } catch (err) {
+        console.error('Error saving new training data: ', err);
+        throw new Error('Error saving new training data');
+    }
+};
 
 app.post('/chat', async (req, res) => {
     const { message } = req.body;
