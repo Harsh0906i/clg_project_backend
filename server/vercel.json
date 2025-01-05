@@ -12,7 +12,7 @@
             "dest": "/index.js"
         }
     ],
-    "functions": {
+    "functions": { 
         "index.js": {
             "includeFiles": "model.nlp"
         }
